@@ -1,0 +1,25 @@
+{
+  "name": "dcps-scheduler",
+  "version": "0.0.1",
+  "description": "middleware for scheduling actions (for use by dcps-corr)",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/naterkane/dcps-scheduler.git"
+  },
+  "author": "Nater Kane <nater@naterkane.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/naterkane/dcps-scheduler/issues"
+  },
+  "homepage": "https://github.com/naterkane/dcps-scheduler#readme",
+  "dependencies": {
+    "agenda": "^0.8.0"
+  },
+  "engines": {
+    "node": "^5.7.0"
+  }
+}
