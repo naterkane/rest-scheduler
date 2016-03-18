@@ -1,6 +1,6 @@
 {
   "name": "dcps-scheduler",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "middleware for scheduling actions (for use by dcps-corr)",
   "main": "index.js",
   "scripts": {
