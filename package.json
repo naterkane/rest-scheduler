@@ -4,6 +4,7 @@
   "description": "middleware for scheduling actions (for use by dcps-corr)",
   "main": "index.js",
   "scripts": {
+    "start": "export NODE_ENV=local && pm2 start server.js",
     "test": "test"
   },
   "repository": {
@@ -17,7 +18,11 @@
   },
   "homepage": "https://github.com/naterkane/dcps-scheduler#readme",
   "dependencies": {
-    "agenda": "^0.8.0"
+    "agenda": "^0.8.0",
+    "agendash": "^0.1.1",
+    "body-parser": "^1.15.0",
+    "conf-env": "^0.1.10",
+    "express-rest": "^1.0.4"
   },
   "engines": {
     "node": "^5.7.0"
