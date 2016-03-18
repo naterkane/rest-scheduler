@@ -9,7 +9,6 @@ require('env-deploy')(__dirname);
 
 var app = express();
   app.use(bodyParser.json());
-//  app.use(app.router);
 
 /**
  * let's get our dashboard served (on the same instance now because lazy)
@@ -17,8 +16,6 @@ var app = express();
 var Agenda = require('agenda');
 var agenda = new Agenda()
     .database(process.env.MONGOSTRING);
-app.use('/agendash', require('express')(agenda));
-//console.log(process.env);
 
 /**
  * let's expose our endpoints
@@ -26,7 +23,7 @@ app.use('/agendash', require('express')(agenda));
 var rest = expressRest(app);
 var generateResponseObj = function(jerb, reqtime){
   return JSON.stringify({_metadata:{time:reqtime,request:jerb}});
-}
+};
 app.post('/action', function(req, res) {
   let reqtime = new Date().toISOString();
   let jerb = req.body;
@@ -80,11 +77,13 @@ app.post('/action', function(req, res) {
   agenda.schedule(jerb.when,jerb.name, jerb, (err, jerb) => res.send(generateResponseObj(jerb, reqtime)) );
   agenda.start();
 });
+
 app.get('/action/:id', function(req, res){
   let jerb = req;
   var action = jerb.callback;
 
 });
+
 app.get('/testcburl', function(req,res){
   var resp = JSON.Stringify(req.body);
   console.log(Date.now(),resp)
