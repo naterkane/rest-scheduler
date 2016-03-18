@@ -80,7 +80,7 @@ This can include any arbitrary JSON the original caller desires.
 Below is an example of a current response object
 
     {
-      "_metadata": {
+      "meta": {
         "time": "2016-03-18T06:54:25.567Z",
         "request": {
           "name": "1 job",
@@ -97,12 +97,12 @@ Below is an example of a current response object
       }
     }
 
-Though the original request object can be found at `_metadata.request.data` in the near future a payload key may be made available as a top level value. 
+Though the original request object can be found at `meta.request.data` in the near future a payload key may be made available as a top level value. 
 
-Users will not be limited to a single payload key, and any key in the original request object named other than `_metadata`, `when`, `url`, or `name` will be passed forward as top level keys and sent to the callback url
+Users are not be limited to a single payload key, and any key in the original request object named other than `meta`, `when`, `url`, or `name` will be passed forward as top level keys and sent to the callback url
 
     {
-      "_metadata": {
+      "meta": {
         "time": "2016-03-18T06:54:25.567Z",
         "request": {
           "name": "1 job",
