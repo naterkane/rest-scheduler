@@ -31,3 +31,7 @@ node_modules
 
 # Optional REPL history
 .node_repl_history
+
+#let's not accidentally add our config files, they should be created by deployment anyway
+config/env/*.js
+.env
