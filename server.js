@@ -66,7 +66,7 @@ app.post('/action', function(req, res) {
       //querystring: "",
       method:      'POST',
       headers:     {
-        'Content-Type':   'application/vnd.api+json',
+        'Content-Type':   'application/json',
         'Content-Length': postData.length
       }
     };
@@ -93,17 +93,20 @@ app.post('/action', function(req, res) {
   });
 
   agenda.schedule(jerb.when,jerb.name, jerb, (err, jerb) =>
-      res.status(202)
+      res.status(201)
           .set('Content-Type', 'application/json')
           .send(generateResponseObj(jerb, reqtime)));
   agenda.start();
 });
 
-app.get('/testcburl', function(req,res){
-  var resp = JSON.Stringify(req.body);
+app.post('/testcburl', function(req,res){
+  var resp = JSON.stringify(req.body);
   console.log(Date.now(),resp);
-  res.send(resp);
+  res.status(202)
+      .set('Content-Type', 'application/json')
+      .send(resp);
 });
+
 
 agenda.on('ready', function() {
   agenda.start();
