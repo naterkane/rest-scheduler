@@ -1,8 +1,8 @@
-# dcps-scheduler
+# REST-Scheduler
 
 ## Introduction
 
-`dcps-scheduler` is middleware that allows the creation and management of special tasks. Think about it as an API to cron w/ persistence and clustering, not all tasks are automations.
+`rest-scheduler` is middleware that allows the creation and management of special tasks. Think about it as an API to cron w/ persistence and clustering, not all tasks are automations.
 This is a dumb system.
 
 ## Getting started
@@ -23,13 +23,13 @@ then edit `.env` as required
       "NODE_ENV": "development"                                                  // set whatever environment you want
     }
     
-### Start DCPS-Scheduler    
+### Start REST-Scheduler    
 
 Now that we have our environment variables taken care of
 
     $ node server.js                                        // if you want stdout
     or
-    $ pm2 start server.js --name=dcps-scheduler --watch     // if you want the awesomeness of pm2
+    $ pm2 start server.js --name=rest-scheduler --watch     // if you want the awesomeness of pm2
     
 ### Start Agendash
 
@@ -74,7 +74,7 @@ Each request must be sent via POST and contain a request object. Currently only 
     
 ## Response objects
 
-As DCPS-Scheduler is really just designed to fire a dumb request to a callback URI after a set period of time, any request object sent to DCPS-Scheduler will get sent do the callback URI specified in the original request.
+As REST-Scheduler is really just designed to fire a dumb request to a callback URI after a set period of time, any request object sent to REST-Scheduler will get sent do the callback URI specified in the original request.
 This can include any arbitrary JSON the original caller desires. 
 
 Below is an example of a current response object
