@@ -5,7 +5,7 @@ var express = require('express'),
     bodyParser = require('body-parser'),
     URL = require('url'),
     http = require('http'),
-    _ = require('lodash');;
+    _ = require('lodash');
 require('env-deploy')(__dirname);
 
 var app = express();
@@ -63,7 +63,7 @@ app.post('/action', function(req, res) {
       hostname:    URL.parse(jerb.url).hostname,
       port:        URL.parse(jerb.url).port,
       path:        URL.parse(jerb.url).path,
-      querystring: "",
+      //querystring: "",
       method:      'POST',
       headers:     {
         'Content-Type':   'application/vnd.api+json',
@@ -87,20 +87,16 @@ app.post('/action', function(req, res) {
       console.log(`problem with request: ${e.message}`);
     });
 
-// write data to request body
     req.write(postData);
     req.end();
     next();
   });
 
-  agenda.schedule(jerb.when,jerb.name, jerb, (err, jerb) => res.send(generateResponseObj(jerb, reqtime)) );
+  agenda.schedule(jerb.when,jerb.name, jerb, (err, jerb) =>
+      res.status(202)
+          .set('Content-Type', 'application/json')
+          .send(generateResponseObj(jerb, reqtime)));
   agenda.start();
-});
-
-app.get('/action/:id', function(req, res){
-  let jerb = req;
-  var action = jerb.callback;
-
 });
 
 app.get('/testcburl', function(req,res){
