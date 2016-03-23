@@ -3,7 +3,7 @@ var express = require('express'),
     expressRest = require('express-rest'),
     config = require('conf-env'),
     bodyParser = require('body-parser'),
-    URL = require('url'),
+    url = require('url'),
     http = require('http'),
     _ = require('lodash');
 require('env-deploy')(__dirname);
@@ -49,24 +49,36 @@ var generateResponseObj = function(jerb, reqtime){
  */
 app.post('/action', function(req, res) {
   let reqtime = new Date().toISOString();
-  let jerb = req.body;
+  let jerb = req.body,
+
+      opts = {};
+
+  /**
+   * process options
+   */
+  if(jerb.concurrency   !== undefined) opts.concurrency   = jerb.concurrency;
+  if(jerb.lockLimit     !== undefined) opts.lockLimit     = jerb.lockLimit;
+  if(jerb.priority      !== undefined) opts.priority      = jerb.priority;
+  if(jerb.lockLifetime  !== undefined) opts.lockLifetime  = jerb.lockLifetime;
+
+
   console.log("URL " + req.body.url);
+  var jorb = jerb;
+  agenda.define(jerb.name, opts, (jorb, done) => {
 
-  agenda.define(jerb.name, (jerb, done) => {
-
+    //console.log("#################################################/nJERB URL" + jerb.url);
 
     var postData = JSON.stringify(jerb),
-        cburl = URL.parse(jerb.url, true, true);
-    console.log("cburl " + cburl);
+        cburl = url.parse(jerb.url, true, true);
+    //console.info("cburl " + JSON.stringify(cburl));
 
     var options = {
-      hostname:    URL.parse(jerb.url).hostname,
-      port:        URL.parse(jerb.url).port,
-      path:        URL.parse(jerb.url).path,
-      //querystring: "",
+      hostname:    cburl.hostname,
+      port:        cburl.port,
+      path:        cburl.path,
       method:      'POST',
       headers:     {
-        'Content-Type':   'application/vnd.api+json',
+        'Content-Type':   'application/json',
         'Content-Length': postData.length
       }
     };
@@ -89,21 +101,25 @@ app.post('/action', function(req, res) {
 
     req.write(postData);
     req.end();
-    next();
+    console.log("done with " + jerb.name)
+    done();
   });
 
-  agenda.schedule(jerb.when,jerb.name, jerb, (err, jerb) =>
-      res.status(202)
+  agenda.schedule(jerb.when, jerb.name, jerb, (err, jerb) =>
+      res.status(201)
           .set('Content-Type', 'application/json')
           .send(generateResponseObj(jerb, reqtime)));
   agenda.start();
 });
 
-app.get('/testcburl', function(req,res){
-  var resp = JSON.Stringify(req.body);
-  console.log(Date.now(),resp);
-  res.send(resp);
+app.post('/testcburl', function(req,res){
+  var resp = JSON.stringify(req.body);
+  console.log("TEST CB URL: " + new Date().toISOString(),resp);
+  res.status(202)
+      .set('Content-Type', 'application/json')
+      .send(resp);
 });
+
 
 agenda.on('ready', function() {
   agenda.start();
