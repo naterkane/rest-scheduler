@@ -31,6 +31,7 @@
   },
   "devDependencies": {
     "chai": "^3.5.0",
+    "faker": "^3.1.0",
     "grunt-cli": "^0.1.13",
     "hippie": "^0.4.0",
     "mocha": "^2.4.5",
