@@ -1,7 +1,7 @@
 {
-  "name": "dcps-scheduler",
-  "version": "0.0.3",
-  "description": "middleware for scheduling actions (for use by dcps-corr)",
+  "name": "rest-scheduler",
+  "version": "0.1.0",
+  "description": "middleware for scheduling actions",
   "main": "index.js",
   "scripts": {
     "start": "export NODE_ENV=development && pm2 start server.js",
@@ -10,14 +10,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/naterkane/dcps-scheduler.git"
+    "url": "git+https://github.com/naterkane/rest-scheduler.git"
   },
   "author": "Nater Kane <nater@naterkane.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/naterkane/dcps-scheduler/issues"
+    "url": "https://github.com/naterkane/rest-scheduler/issues"
   },
-  "homepage": "https://github.com/naterkane/dcps-scheduler#readme",
+  "homepage": "https://github.com/naterkane/rest-scheduler#readme",
   "dependencies": {
     "agenda": "^0.8.0",
     "agendash": "^0.1.1",
@@ -31,7 +31,10 @@
   },
   "devDependencies": {
     "chai": "^3.5.0",
+    "faker": "^3.1.0",
+    "grunt-cli": "^0.1.13",
     "hippie": "^0.4.0",
-    "mocha": "^2.4.5"
+    "mocha": "^2.4.5",
+    "supertest": "^1.2.0"
   }
 }
