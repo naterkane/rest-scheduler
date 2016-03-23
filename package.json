@@ -1,6 +1,6 @@
 {
   "name": "rest-scheduler",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "middleware for scheduling actions",
   "main": "index.js",
   "scripts": {
