@@ -1,0 +1,806 @@
+<!DOCTYPE HTML><html><head><title>rest-agendaw API documentation</title><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta http-equiv="Content-Type" content="text/html; charset=utf-8"><meta name="generator" content="https://github.com/kevinrenskers/raml2html 1.6.0"><link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css"><link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/styles/default.min.css"><script type="text/javascript" src="http://code.jquery.com/jquery-1.11.0.min.js"></script><script type="text/javascript" src="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script><script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.1/highlight.min.js"></script><script type="text/javascript">
+        $(document).ready(function() {
+            $('.page-header pre code, .top-resource-description pre code').each(function(i, block) {
+                hljs.highlightBlock(block);
+            });
+
+            $('[data-toggle]').click(function() {
+                var selector = $(this).data('target') + ' pre code';
+                $(selector).each(function(i, block) {
+                    hljs.highlightBlock(block);
+                });
+            });
+            
+            
+            // open modal on hashes like #_action_get
+            $(window).bind('hashchange', function(e) {
+                var anchor_id = document.location.hash.substr(1); //strip #
+                var element = $('#' + anchor_id);
+
+                // do we have such element + is it a modal?  --> show it
+                if (element.length && element.hasClass('modal')) {
+                    element.modal('show');
+                }
+            });
+
+            // execute hashchange on first page load
+            $(window).trigger('hashchange');
+            
+            // remove url fragment on modal hide
+            $('.modal').on('hidden.bs.modal', function() {
+                if(history && history.replaceState) { 
+                    history.replaceState({}, '', '#');
+                }
+            });
+        });
+    </script><style>
+        .hljs {
+            background: transparent;
+        }
+        .parent {
+            color: #999;
+        }
+        .list-group-item > .badge {
+            float: none;
+            margin-right: 6px;
+        }
+        .panel-title > .methods {
+            float: right;
+        }
+        .badge {
+            border-radius: 0;
+            text-transform: uppercase;
+            width: 70px;
+            font-weight: normal;
+            color: #f3f3f6;
+            line-height: normal;
+        }
+        .badge_get {
+            background-color: #63a8e2;
+        }
+        .badge_post {
+            background-color: #6cbd7d;
+        }
+        .badge_put {
+            background-color: #22bac4;
+        }
+        .badge_delete {
+            background-color: #d26460;
+        }
+        .badge_patch {
+            background-color: #ccc444;
+        }
+        .list-group, .panel-group {
+            margin-bottom: 0;
+        }
+        .panel-group .panel+.panel-white {
+            margin-top: 0;
+        }
+        .panel-group .panel-white {
+            border-bottom: 1px solid #F5F5F5;
+            border-radius: 0;
+        }
+        .panel-white:last-child {
+            border-bottom-color: white;
+            -webkit-box-shadow: none;
+            box-shadow: none;
+        }
+        .panel-white .panel-heading {
+            background: white;
+        }
+        .tab-pane ul {
+            padding-left: 2em;
+        }
+        .tab-pane h2 {
+            font-size: 1.2em;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #ddd;
+        }
+        .tab-pane h3 {
+            font-size: 1.1em;
+        }
+        .tab-content {
+            border-left: 1px solid #ddd;
+            border-right: 1px solid #ddd;
+            border-bottom: 1px solid #ddd;
+            padding: 10px;
+        }
+        #sidebar {
+            margin-top: 30px;
+            padding-right: 5px;
+            overflow: auto;
+            height: 90%;
+        }
+        .top-resource-description {
+            border-bottom: 1px solid #ddd;
+            background: #fcfcfc;
+            padding: 15px 15px 0 15px;
+            margin: -15px -15px 10px -15px;
+        }
+        .resource-description {
+            border-bottom: 1px solid #fcfcfc;
+            background: #fcfcfc;
+            padding: 15px 15px 0 15px;
+            margin: -15px -15px 10px -15px;
+        }
+        .resource-description p:last-child {
+            margin: 0;
+        }
+        .list-group .badge {
+            float: left;
+        }
+        .method_description {
+            margin-left: 85px;
+        }
+        .method_description p:last-child {
+            margin: 0;
+        }
+        .list-group-item {
+            cursor: pointer;
+        }
+        .list-group-item:hover {
+            background-color: #f5f5f5;
+        }
+    </style></head><body data-spy="scroll" data-target="#sidebar"><div class="container"><div class="row"><div class="col-md-9" role="main"><div class="page-header"><h1>rest-agendaw API documentation <small>version 0.1.0</small></h1><p>/</p><h3 id="Getting-Started"><a href="#Getting-Started">Getting Started</a></h3><h1 id="rest-scheduler">REST-Scheduler</h1><h2 id="introduction">Introduction</h2><p><code>rest-scheduler</code> is middleware that allows the creation and management of special tasks. Think about it as an API to cron w/ persistence and clustering, not all tasks are automations. This is a dumb system.</p><h2 id="getting-started">Getting started</h2><h3 id="mongo">Mongo</h3><p><strong>Currently agenda only supports Mongo 2.6.x - &lt;3.0</strong> A <a href="Dockerfile">Dockerfile</a> is included in this project for convenience</p><p>please note that <code>NODE_ENV</code> must be set per environment, example files are included in the repo</p><pre><code>$ cp .env.sample .env
+</code></pre><p>then edit <code>.env</code> as required, the default mongo docker container does not require <code>dbuser</code> or <code>dbpassword</code></p><pre><code>{
+  MONGOSTRING: "mongodb://&lt;dbuser&gt;:&lt;dbpassword&gt;@&lt;domain&gt;:&lt;port&gt;/&lt;database&gt;", // use whatever mongo connect string you need
+  "NODE_ENV": "development"                                                  // set whatever environment you want
+}
+</code></pre><h3 id="start-rest-scheduler">Start REST-Scheduler</h3><p>Now that we have our environment variables taken care of</p><p>Run Mongo then start the server</p><pre><code>$ node run docker
+$ node server.js                                        // if you want stdout
+or
+$ pm2 start server.js --name=rest-scheduler --watch     // if you want the awesomeness of pm2
+</code></pre><h3 id="start-agendash">Start Agendash</h3><p>to run agendash, in a separate process (open a new terminal window) run:</p><pre><code>$ ./node_modules/.bin/agendash --db=mongodb://&lt;mongouser&gt;:&lt;mongopass&gt;@&lt;mongoserver&gt;:&lt;mongoport&gt;/&lt;mongodb&gt; --port=3001
+</code></pre><p>alternatively <code>.env</code> may be used to specify this value</p><p>This service only exposes a single endpoint... <code>/action</code></p><h2 id="sending-a-request-to-the-scheduler">Sending a request to the scheduler</h2><p>Each request must be sent via POST and contain a request object. Currently only 3 keys are required</p><pre><code>{
+"when":"in 3 second",                       // a relative amount of time
+"url":"http://localhost:3000/testcburl",    // a callback url (all callback urls will be requested via POST)
+"name":"3 job"                              // a name for the job. unique value is encouraged, but not required
+}
+</code></pre><h3 id="using-http">Using HTTP</h3><pre><code>POST /action HTTP/1.1
+Host: localhost:3000
+Content-Type: application/json
+
+{
+"when":"in 3 second",
+"url":"http://localhost:3000/testcburl",
+"name":"3 job"
+}
+</code></pre><h3 id="using-curl">Using cURL</h3><pre><code>curl -X POST -H "Content-Type: application/json" -d &#39;{
+"when":"in 3 second",
+"url":"http://localhost:3000/testcburl",
+"name":"3 job"
+}&#39; "http://localhost:3000/action"
+</code></pre><h2 id="response-objects">Response objects</h2><p>As REST-Scheduler is really just designed to fire a dumb request to a callback URI after a set period of time, any request object sent to REST-Scheduler will get sent do the callback URI specified in the original request. This can include any arbitrary JSON the original caller desires.</p><p>Below is an example of a current response object</p><pre><code>{
+  "meta": {
+    "time": "2016-03-18T06:54:25.567Z",
+    "request": {
+      "name": "1 job",
+      "data": {
+        "when": "in 1 second",
+        "url": "http://localhost:3000/testcburl",
+        "name": "1 job"
+      },
+      "type": "normal",
+      "priority": 0,
+      "nextRunAt": "2016-03-18T06:54:26.568Z",
+      "_id": "56eba62139a48fc980b3495d"
+    }
+  }
+}
+</code></pre><p>Though the original request object can be found at <code>meta.request.data</code> in the near future a payload key may be made available as a top level value.</p><p>Users are not be limited to a single payload key, and any key in the original request object named other than <code>meta</code>, <code>when</code>, <code>url</code>, or <code>name</code> will be passed forward as top level keys and sent to the callback url</p><pre><code>{
+  "meta": {
+    "time": "2016-03-18T06:54:25.567Z",
+    "request": {
+      "name": "1 job",
+      "data": {
+        "when": "in 1 second",
+        "url": "http://localhost:3000/testcburl",
+        "name": "1 job",
+        "foo": ["bar","baz"]            // this is the arbitrarily named payload to make available to the callback url when the scheduled event gets fired
+      },
+      "type": "normal",
+      "priority": 0,
+      "nextRunAt": "2016-03-18T06:54:26.568Z",
+      "_id": "56eba62139a48fc980b3495d"
+    }
+  },
+  "foo": ["bar","baz"]                  // this is the payload available as a top level key in the request object that gets sent to the callback url
+}
+</code></pre></div><div class="panel panel-default"><div class="panel-heading"><h3 id="_" class="panel-title">Create Job</h3></div><div class="panel-body"><div class="top-resource-description"><p>this is the action that will fire at some time in the future</p></div><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel__"><span class="parent"></span>/</a> <span class="methods"><a href="#__post"><span class="badge badge_post">post</span></a></span></h4></div><div id="panel__" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#__post'" class="list-group-item"><span class="badge badge_post">post</span><div class="method_description"><p>Add a new to REST-Scheduler.</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="__post"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_post">post</span> <span class="parent"></span>/</h4></div><div class="modal-body"><div class="alert alert-info"><p>Add a new to REST-Scheduler.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#__post_request" data-toggle="tab">Request</a></li><li><a href="#__post_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="__post_request"><h3>Headers</h3><ul><li><strong>Content-Type</strong>: <em>(string )</em><p>the required content type and encoding</p><p><strong>Example</strong>:</p><pre>application/json; charset=utf-8
+</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "when": {
+      "id": "when",
+      "type": "string"
+    },
+    "url": {
+      "id": "url",
+      "type": "string"
+    },
+    "name": {
+      "id": "name",
+      "type": "string"
+    }
+  },
+  "additionalProperties": true,
+  "required": [
+    "when",
+    "url",
+    "name"
+  ]
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "when":"in 3 second",
+  "url":"http://localhost:3000/testcburl",
+  "name":"3 job"
+}</code></pre></div><div class="tab-pane" id="__post_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>Content-Type</strong>: <em>(string )</em><p>the required content type and encoding</p><p><strong>Example</strong>:</p><pre>application/json; charset=utf-8
+</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "id": "meta",
+      "type": "object",
+      "properties": {
+        "time": {
+          "id": "time",
+          "type": "string"
+        },
+        "request": {
+          "id": "request",
+          "type": "object",
+          "properties": {
+            "name": "[object Object]",
+            "data": {
+              "id": "data",
+              "type": "object",
+              "properties": {
+                "when": {
+                  "id": "when",
+                  "type": "string"
+                },
+                "url": {
+                  "id": "url",
+                  "type": "string"
+                },
+                "name": "[object Object]"
+              },
+              "additionalProperties": true
+            },
+            "type": {
+              "id": "type",
+              "type": "string"
+            },
+            "priority": {
+              "id": "priority",
+              "type": "integer"
+            },
+            "nextRunAt": {
+              "id": "nextRunAt",
+              "type": "string"
+            },
+            "_id": {
+              "id": "_id",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "time",
+        "request"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "meta"
+  ]
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "meta": {
+    "time": "2016-03-18T06:54:25.567Z",
+    "request": {
+      "name": "1 job",
+      "data": {
+        "when": "in 1 second",
+        "url": "http://localhost:3000/testcburl",
+        "name": "1 job"
+      },
+      "type": "normal",
+      "priority": 0,
+      "nextRunAt": "2016-03-18T06:54:26.568Z",
+      "_id": "56eba62139a48fc980b3495d"
+    }
+  }
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/400" target="_blank">400</a></h2><h3>Headers</h3><ul><li><strong>Content-Type</strong>: <em>(string )</em><p>the required content type and encoding</p><p><strong>Example</strong>:</p><pre>application/json; charset=utf-8
+</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Example</strong>:</p><pre><code>{"message": "We could not process your request " }
+</code></pre><h2>HTTP status code <a href="http://httpstatus.es/500" target="_blank">500</a></h2><h3>Headers</h3><ul><li><strong>Content-Type</strong>: <em>(string )</em><p>the required content type and encoding</p><p><strong>Example</strong>:</p><pre>application/json; charset=utf-8
+</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Example</strong>:</p><pre><code>{"message": "Job  could not be created" }
+</code></pre></div></div></div></div></div></div></div></div></div></div><div class="panel panel-default"><div class="panel-heading"><h3 id="__jobid_" class="panel-title">Job</h3></div><div class="panel-body"><div class="top-resource-description"><p>this is the action that will fire at some time in the future</p></div><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel___jobid_"><span class="parent"></span>/{jobid}</a> <span class="methods"><a href="#__jobid__get"><span class="badge badge_get">get</span></a> <a href="#__jobid__put"><span class="badge badge_put">put</span></a> <a href="#__jobid__delete"><span class="badge badge_delete">delete</span></a></span></h4></div><div id="panel___jobid_" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#__jobid__get'" class="list-group-item"><span class="badge badge_get">get</span><div class="method_description"><p>Get the with Id = {Id}</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#__jobid__put'" class="list-group-item"><span class="badge badge_put">put</span><div class="method_description"><p>Update the with Id = {Id}.</p></div><div class="clearfix"></div></div><div onclick="window.location.href = '#__jobid__delete'" class="list-group-item"><span class="badge badge_delete">delete</span><div class="method_description"></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="__jobid__get"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_get">get</span> <span class="parent"></span>/{jobid}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Get the with Id = {Id}</p></div><ul class="nav nav-tabs"><li class="active"><a href="#__jobid__get_request" data-toggle="tab">Request</a></li><li><a href="#__jobid__get_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="__jobid__get_request"><h3>URI Parameters</h3><ul><li><strong>jobid</strong>: <em>required (string )</em></li></ul><h3>Headers</h3><ul><li><strong>Content-Type</strong>: <em>(string )</em><p>the required content type and encoding</p><p><strong>Example</strong>:</p><pre>application/json; charset=utf-8
+</pre></li></ul></div><div class="tab-pane" id="__jobid__get_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>Content-Type</strong>: <em>(string )</em><p>the required content type and encoding</p><p><strong>Example</strong>:</p><pre>application/json; charset=utf-8
+</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "id": "meta",
+      "type": "object",
+      "properties": {
+        "time": {
+          "id": "time",
+          "type": "string"
+        },
+        "request": {
+          "id": "request",
+          "type": "object",
+          "properties": {
+            "name": "[object Object]",
+            "data": {
+              "id": "data",
+              "type": "object",
+              "properties": {
+                "when": {
+                  "id": "when",
+                  "type": "string"
+                },
+                "url": {
+                  "id": "url",
+                  "type": "string"
+                },
+                "name": "[object Object]"
+              },
+              "additionalProperties": true
+            },
+            "type": {
+              "id": "type",
+              "type": "string"
+            },
+            "priority": {
+              "id": "priority",
+              "type": "integer"
+            },
+            "nextRunAt": {
+              "id": "nextRunAt",
+              "type": "string"
+            },
+            "_id": {
+              "id": "_id",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "time",
+        "request"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "meta"
+  ]
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "meta": {
+    "time": "2016-03-18T06:54:25.567Z",
+    "request": {
+      "name": "1 job",
+      "data": {
+        "when": "in 1 second",
+        "url": "http://localhost:3000/testcburl",
+        "name": "1 job"
+      },
+      "type": "normal",
+      "priority": 0,
+      "nextRunAt": "2016-03-18T06:54:26.568Z",
+      "_id": "56eba62139a48fc980b3495d"
+    }
+  }
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/400" target="_blank">400</a></h2><h3>Headers</h3><ul><li><strong>Content-Type</strong>: <em>(string )</em><p>the required content type and encoding</p><p><strong>Example</strong>:</p><pre>application/json; charset=utf-8
+</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Example</strong>:</p><pre><code>{"message": " not found" }
+</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="__jobid__put"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_put">put</span> <span class="parent"></span>/{jobid}</h4></div><div class="modal-body"><div class="alert alert-info"><p>Update the with Id = {Id}.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#__jobid__put_request" data-toggle="tab">Request</a></li><li><a href="#__jobid__put_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="__jobid__put_request"><h3>URI Parameters</h3><ul><li><strong>jobid</strong>: <em>required (string )</em></li></ul><h3>Headers</h3><ul><li><strong>Content-Type</strong>: <em>(string )</em><p>the required content type and encoding</p><p><strong>Example</strong>:</p><pre>application/json; charset=utf-8
+</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "id": "meta",
+      "type": "object",
+      "properties": {
+        "time": {
+          "id": "time",
+          "type": "string"
+        },
+        "request": {
+          "id": "request",
+          "type": "object",
+          "properties": {
+            "name": "[object Object]",
+            "data": {
+              "id": "data",
+              "type": "object",
+              "properties": {
+                "when": {
+                  "id": "when",
+                  "type": "string"
+                },
+                "url": {
+                  "id": "url",
+                  "type": "string"
+                },
+                "name": "[object Object]"
+              },
+              "additionalProperties": true
+            },
+            "type": {
+              "id": "type",
+              "type": "string"
+            },
+            "priority": {
+              "id": "priority",
+              "type": "integer"
+            },
+            "nextRunAt": {
+              "id": "nextRunAt",
+              "type": "string"
+            },
+            "_id": {
+              "id": "_id",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "time",
+        "request"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "meta"
+  ]
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "meta": {
+    "time": "2016-03-18T06:54:25.567Z",
+    "request": {
+      "name": "1 job",
+      "data": {
+        "when": "in 1 second",
+        "url": "http://localhost:3000/testcburl",
+        "name": "1 job"
+      },
+      "type": "normal",
+      "priority": 0,
+      "nextRunAt": "2016-03-18T06:54:26.568Z",
+      "_id": "56eba62139a48fc980b3495d"
+    }
+  }
+}</code></pre></div><div class="tab-pane" id="__jobid__put_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Headers</h3><ul><li><strong>Content-Type</strong>: <em>(string )</em><p>the required content type and encoding</p><p><strong>Example</strong>:</p><pre>application/json; charset=utf-8
+</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "id": "meta",
+      "type": "object",
+      "properties": {
+        "time": {
+          "id": "time",
+          "type": "string"
+        },
+        "request": {
+          "id": "request",
+          "type": "object",
+          "properties": {
+            "name": "[object Object]",
+            "data": {
+              "id": "data",
+              "type": "object",
+              "properties": {
+                "when": {
+                  "id": "when",
+                  "type": "string"
+                },
+                "url": {
+                  "id": "url",
+                  "type": "string"
+                },
+                "name": "[object Object]"
+              },
+              "additionalProperties": true
+            },
+            "type": {
+              "id": "type",
+              "type": "string"
+            },
+            "priority": {
+              "id": "priority",
+              "type": "integer"
+            },
+            "nextRunAt": {
+              "id": "nextRunAt",
+              "type": "string"
+            },
+            "_id": {
+              "id": "_id",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "time",
+        "request"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "meta"
+  ]
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "meta": {
+    "time": "2016-03-18T06:54:25.567Z",
+    "request": {
+      "name": "1 job",
+      "data": {
+        "when": "in 1 second",
+        "url": "http://localhost:3000/testcburl",
+        "name": "1 job"
+      },
+      "type": "normal",
+      "priority": 0,
+      "nextRunAt": "2016-03-18T06:54:26.568Z",
+      "_id": "56eba62139a48fc980b3495d"
+    }
+  }
+}</code></pre><h2>HTTP status code <a href="http://httpstatus.es/400" target="_blank">400</a></h2><h3>Headers</h3><ul><li><strong>Content-Type</strong>: <em>(string )</em><p>the required content type and encoding</p><p><strong>Example</strong>:</p><pre>application/json; charset=utf-8
+</pre></li></ul><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Example</strong>:</p><pre><code>{"message": "Job  not found" }
+</code></pre></div></div></div></div></div></div><div class="modal fade" tabindex="0" id="__jobid__delete"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_delete">delete</span> <span class="parent"></span>/{jobid}</h4></div><div class="modal-body"><ul class="nav nav-tabs"><li class="active"><a href="#__jobid__delete_request" data-toggle="tab">Request</a></li><li><a href="#__jobid__delete_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="__jobid__delete_request"><h3>URI Parameters</h3><ul><li><strong>jobid</strong>: <em>required (string )</em></li></ul></div><div class="tab-pane" id="__jobid__delete_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "id": "meta",
+      "type": "object",
+      "properties": {
+        "time": {
+          "id": "time",
+          "type": "string"
+        },
+        "request": {
+          "id": "request",
+          "type": "object",
+          "properties": {
+            "name": "[object Object]",
+            "data": {
+              "id": "data",
+              "type": "object",
+              "properties": {
+                "when": {
+                  "id": "when",
+                  "type": "string"
+                },
+                "url": {
+                  "id": "url",
+                  "type": "string"
+                },
+                "name": "[object Object]"
+              },
+              "additionalProperties": true
+            },
+            "type": {
+              "id": "type",
+              "type": "string"
+            },
+            "priority": {
+              "id": "priority",
+              "type": "integer"
+            },
+            "nextRunAt": {
+              "id": "nextRunAt",
+              "type": "string"
+            },
+            "_id": {
+              "id": "_id",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "time",
+        "request"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "meta"
+  ]
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "meta": {
+    "time": "2016-03-18T06:54:25.567Z",
+    "request": {
+      "name": "1 job",
+      "data": {
+        "when": "in 1 second",
+        "url": "http://localhost:3000/testcburl",
+        "name": "1 job"
+      },
+      "type": "normal",
+      "priority": 0,
+      "nextRunAt": "2016-03-18T06:54:26.568Z",
+      "_id": "56eba62139a48fc980b3495d"
+    }
+  }
+}</code></pre></div></div></div></div></div></div></div></div></div></div><div class="panel panel-default"><div class="panel-heading"><h3 id="_testcburl" class="panel-title">Callback URL for testing</h3></div><div class="panel-body"><div class="top-resource-description"><p>Entity representing a read-only testcburl</p></div><div class="panel-group"><div class="panel panel-white"><div class="panel-heading"><h4 class="panel-title"><a class="collapsed" data-toggle="collapse" href="#panel__testcburl"><span class="parent"></span>/testcburl</a> <span class="methods"><a href="#_testcburl_post"><span class="badge badge_post">post</span></a></span></h4></div><div id="panel__testcburl" class="panel-collapse collapse"><div class="panel-body"><div class="list-group"><div onclick="window.location.href = '#_testcburl_post'" class="list-group-item"><span class="badge badge_post">post</span><div class="method_description"><p>Test the testcburl with testcburlId = {testcburlId} If called anonymously, the testcburl must be public.</p></div><div class="clearfix"></div></div></div></div></div><div class="modal fade" tabindex="0" id="_testcburl_post"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button><h4 class="modal-title" id="myModalLabel"><span class="badge badge_post">post</span> <span class="parent"></span>/testcburl</h4></div><div class="modal-body"><div class="alert alert-info"><p>Test the testcburl with testcburlId = {testcburlId} If called anonymously, the testcburl must be public.</p></div><ul class="nav nav-tabs"><li class="active"><a href="#_testcburl_post_request" data-toggle="tab">Request</a></li><li><a href="#_testcburl_post_response" data-toggle="tab">Response</a></li></ul><div class="tab-content"><div class="tab-pane active" id="_testcburl_post_request"><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "id": "meta",
+      "type": "object",
+      "properties": {
+        "time": {
+          "id": "time",
+          "type": "string"
+        },
+        "request": {
+          "id": "request",
+          "type": "object",
+          "properties": {
+            "name": "[object Object]",
+            "data": {
+              "id": "data",
+              "type": "object",
+              "properties": {
+                "when": {
+                  "id": "when",
+                  "type": "string"
+                },
+                "url": {
+                  "id": "url",
+                  "type": "string"
+                },
+                "name": "[object Object]"
+              },
+              "additionalProperties": true
+            },
+            "type": {
+              "id": "type",
+              "type": "string"
+            },
+            "priority": {
+              "id": "priority",
+              "type": "integer"
+            },
+            "nextRunAt": {
+              "id": "nextRunAt",
+              "type": "string"
+            },
+            "_id": {
+              "id": "_id",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "time",
+        "request"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "meta"
+  ]
+}
+#testcburl
+</code></pre><p><strong>Example</strong>:</p><pre><code>{
+  "meta": {
+    "time": "2016-03-18T06:54:25.567Z",
+    "request": {
+      "name": "1 job",
+      "data": {
+        "when": "in 1 second",
+        "url": "http://localhost:3000/testcburl",
+        "name": "1 job"
+      },
+      "type": "normal",
+      "priority": 0,
+      "nextRunAt": "2016-03-18T06:54:26.568Z",
+      "_id": "56eba62139a48fc980b3495d"
+    }
+  }
+}
+</code></pre></div><div class="tab-pane" id="_testcburl_post_response"><h2>HTTP status code <a href="http://httpstatus.es/200" target="_blank">200</a></h2><h3>Body</h3><p><strong>Type: application/json</strong></p><p><strong>Schema</strong>:</p><pre><code>{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "meta": {
+      "id": "meta",
+      "type": "object",
+      "properties": {
+        "time": {
+          "id": "time",
+          "type": "string"
+        },
+        "request": {
+          "id": "request",
+          "type": "object",
+          "properties": {
+            "name": "[object Object]",
+            "data": {
+              "id": "data",
+              "type": "object",
+              "properties": {
+                "when": {
+                  "id": "when",
+                  "type": "string"
+                },
+                "url": {
+                  "id": "url",
+                  "type": "string"
+                },
+                "name": "[object Object]"
+              },
+              "additionalProperties": true
+            },
+            "type": {
+              "id": "type",
+              "type": "string"
+            },
+            "priority": {
+              "id": "priority",
+              "type": "integer"
+            },
+            "nextRunAt": {
+              "id": "nextRunAt",
+              "type": "string"
+            },
+            "_id": {
+              "id": "_id",
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "time",
+        "request"
+      ]
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "meta"
+  ]
+}</code></pre><p><strong>Example</strong>:</p><pre><code>{}
+</code></pre></div></div></div></div></div></div></div></div></div></div></div><div class="col-md-3"><div id="sidebar" class="hidden-print affix" role="complementary"><ul class="nav nav-pills nav-stacked"><li><a href="#_">Create Job</a></li><li><a href="#__jobid_">Job</a></li><li><a href="#_testcburl">Callback URL for testing</a></li></ul></div></div></div></div></body></html>
