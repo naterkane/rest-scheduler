@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "/",
+  "type": "object",
+  "properties": {
+    "when": {
+      "id": "when",
+      "type": "string"
+    },
+    "url": {
+      "id": "url",
+      "type": "string"
+    },
+    "name": {
+      "id": "name",
+      "type": "string"
+    }
+  },
+  "additionalProperties": true,
+  "required": [
+    "when",
+    "url",
+    "name"
+  ]
+}
