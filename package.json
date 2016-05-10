@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/naterkane/rest-scheduler#readme",
   "dependencies": {
-    "agenda": "^0.8.0",
+    "agenda": "^0.8.1",
     "agendash": "^0.3.1",
     "body-parser": "^1.15.0",
     "env-deploy": "^0.2.1",
