@@ -1,4 +1,4 @@
-var raml = require('raml-1-parser');
+var raml = require('raml-parser');
 var _ = require('lodash');
 var fs = require('fs');
 

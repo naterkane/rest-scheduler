@@ -15,28 +15,31 @@ A [Dockerfile](Dockerfile) is included in this project for convenience
 please note that `NODE_ENV` must be set per environment, example files are included in the repo
 
     $ cp .env.sample .env
-    
-then edit `.env` as required
+
+then edit `.env` as required, the default mongo docker container does not require `dbuser` or `dbpassword`
 
     {
       MONGOSTRING: "mongodb://<dbuser>:<dbpassword>@<domain>:<port>/<database>", // use whatever mongo connect string you need
       "NODE_ENV": "development"                                                  // set whatever environment you want
     }
-    
+
 ### Start REST-Scheduler    
 
 Now that we have our environment variables taken care of
 
+Run Mongo then start the server
+
+    $ node run docker
     $ node server.js                                        // if you want stdout
     or
     $ pm2 start server.js --name=rest-scheduler --watch     // if you want the awesomeness of pm2
-    
+
 ### Start Agendash
 
 to run agendash, in a separate process (open a new terminal window) run:
-    
+
     $ ./node_modules/.bin/agendash --db=mongodb://<mongouser>:<mongopass>@<mongoserver>:<mongoport>/<mongodb> --port=3001
-    
+
 alternatively `.env` may be used to specify this value
 
 This service only exposes a single endpoint... `/action`
@@ -57,7 +60,7 @@ Each request must be sent via POST and contain a request object. Currently only 
     POST /action HTTP/1.1
     Host: localhost:3000
     Content-Type: application/json
-    
+
     {
     "when":"in 3 second",
     "url":"http://localhost:3000/testcburl",
@@ -71,11 +74,11 @@ Each request must be sent via POST and contain a request object. Currently only 
     "url":"http://localhost:3000/testcburl",
     "name":"3 job"
     }' "http://localhost:3000/action"
-    
+
 ## Response objects
 
 As REST-Scheduler is really just designed to fire a dumb request to a callback URI after a set period of time, any request object sent to REST-Scheduler will get sent do the callback URI specified in the original request.
-This can include any arbitrary JSON the original caller desires. 
+This can include any arbitrary JSON the original caller desires.
 
 Below is an example of a current response object
 
@@ -97,7 +100,7 @@ Below is an example of a current response object
       }
     }
 
-Though the original request object can be found at `meta.request.data` in the near future a payload key may be made available as a top level value. 
+Though the original request object can be found at `meta.request.data` in the near future a payload key may be made available as a top level value.
 
 Users are not be limited to a single payload key, and any key in the original request object named other than `meta`, `when`, `url`, or `name` will be passed forward as top level keys and sent to the callback url
 
