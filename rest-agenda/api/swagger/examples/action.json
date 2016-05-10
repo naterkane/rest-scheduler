@@ -1,0 +1,17 @@
+{
+  "meta": {
+    "time": "2016-03-18T06:54:25.567Z",
+    "request": {
+      "name": "1 job",
+      "data": {
+        "when": "in 1 second",
+        "url": "http://localhost:3000/testcburl",
+        "name": "1 job"
+      },
+      "type": "normal",
+      "priority": 0,
+      "nextRunAt": "2016-03-18T06:54:26.568Z",
+      "_id": "56eba62139a48fc980b3495d"
+    }
+  }
+}

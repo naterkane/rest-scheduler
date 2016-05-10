@@ -1,12 +1,16 @@
 {
-  "name": "rest-scheduler",
+  "name": "rest-agenda",
   "version": "0.1.0",
   "description": "middleware for scheduling actions",
   "main": "index.js",
   "scripts": {
     "start": "export NODE_ENV=development && pm2 start server.js",
     "prod": "export NODE_ENV=production && pm2 start server.js",
-    "test": "mocha test"
+    "pretest": "API_SPEC_PORT=3002 pm2 start -f mocker.js --name testserver",
+    "posttest": "pm2 delete testserver",
+    "test": "node raml/rparse.js && mocha test",
+    "docs": "node node_modules/raml2html/lib/raml2html.js raml/api.raml > docs.html",
+    "docker": "sh build-docker.sh"
   },
   "repository": {
     "type": "git",
@@ -20,21 +24,29 @@
   "homepage": "https://github.com/naterkane/rest-scheduler#readme",
   "dependencies": {
     "agenda": "^0.8.0",
-    "agendash": "^0.1.1",
+    "agendash": "^0.3.1",
     "body-parser": "^1.15.0",
     "env-deploy": "^0.2.1",
+    "express": "^4.13.4",
     "express-rest": "^1.0.4",
-    "lodash": "^4.6.1"
+    "lodash": "^4.8.2"
   },
   "engines": {
-    "node": "^5.7.0"
+    "node": "^5.2.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
+    "eslint": "^2.9.0",
+    "eslint-config-google": "^0.5.0",
     "faker": "^3.1.0",
-    "grunt-cli": "^0.1.13",
+    "grunt-cli": "^1.2.0",
     "hippie": "^0.4.0",
     "mocha": "^2.4.5",
+    "pm2": "^0.12.1",
+    "raml-1-parser": "^0.2.6",
+    "raml-mocker": "^0.2.0",
+    "raml-parser": "^0.8.17",
+    "raml2html": "^1.6.0",
     "supertest": "^1.2.0"
   }
 }

@@ -1,0 +1,3 @@
+module.exports = {
+  mongostring: "mongodb://<dbuser>:<dbpassword>@<domain>:<port>/<database>"
+}

@@ -1,0 +1,264 @@
+#%RAML 0.8
+title: rest-agenda
+version: 0.1.0
+mediaType: application/json
+baseUri: /
+documentation:
+ - title: Getting Started
+   content: !include ../README.md
+resourceTypes:
+  - readonly-collection:
+      description: Collection of available read-only <<resourcePathName>> in REST-Scheduler.
+      get:
+        description: Get a list of <<resourcePathName>>.
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  <<exampleCollection>>
+                schema: <<schemaCollection>>
+  - readonly-collection-item:
+      is: [versionable]
+      securedBy: [null]
+      description: Entity representing a read-only <<resourcePathName|!singularize>>
+      get:
+        description: |
+          Get the <<resourcePathName|!singularize>>
+          with <<resourcePathName|!singularize>>Id =
+          {<<resourcePathName|!singularize>>Id}
+          If called anonymously, the <<resourcePathName|!singularize>>
+          must be public.
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  <<exampleItem>>
+                schema: <<schemaItem>>
+          404:
+            body:
+              application/json:
+                example: |
+                  {"message": "<<resourcePathName|!singularize>> not found" }
+      head:
+        description: |
+          Check if the <<resourcePathName|!singularize>>
+          with <<resourcePathName|!singularize>>Id =
+          {<<resourcePathName|!singularize>>Id} exists
+          If called anonymously, the <<resourcePathName|!singularize>>
+          must be public.
+        responses:
+          200: #TODO is this right? "302 wasn't correct. 204 would be ok, but 200 is actually correct." - nater
+            headers:
+          404:
+            body:
+              application/json:
+                example: |
+                  {"message": "<<resourcePathName|!singularize>> not found" }
+  - collection:
+      is: [versionable]
+      securedBy: [null]
+      description: Collection of available <<resourcePathName>> in REST-Scheduler.
+      get:
+        description: |
+          Get a list of <<resourcePathName>>.  If called anonymously,
+          this will return all public <<resourcePathName>>.
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  <<exampleCollection>>
+                schema: <<schemaCollection>>
+      post:
+        description: |
+          Add a new <<resourcePathName|!singularize>> to REST-Scheduler.
+        queryParameters:
+          access_token:
+            description: "The access token provided by the authentication application"
+            example: AABBCCDD
+            required: true
+            type: string
+        body:
+          application/json:
+            schema: <<resourcePathName|!singularize>>
+            example: |
+              <<exampleItem>>
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  { "message": "The <<resourcePathName|!singularize>> has been properly entered" }
+  - collection-item:
+      is: [versionable]
+      securedBy: [null]
+      description: Entity representing a <<resourcePathName|!singularize>>
+      get:
+        description: |
+          Get the <<resourcePathName|!singularize>>
+          with <<resourcePathName|!singularize>>Id =
+          {<<resourcePathName|!singularize>>Id}
+          If called anonymously, the <<resourcePathName|!singularize>>
+          must be public.
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  <<exampleItem>>
+                schema: <<schemaItem>>
+          404:
+            body:
+              application/json:
+                example: |
+                  {"message": "<<resourcePathName|!singularize>> not found" }
+      head:
+        description: |
+          Check if the <<resourcePathName|!singularize>>
+          with <<resourcePathName|!singularize>>Id =
+          {<<resourcePathName|!singularize>>Id} exists
+          If called anonymously, the <<resourcePathName|!singularize>>
+          must be public.
+        responses:
+          200: #TODO is this right? "302 wasn't correct. 204 would be ok, but 200 is actually correct." - nater
+            headers:
+          400:
+            body:
+              application/json:
+                example: |
+                  {"message": "<<resourcePathName|!singularize>> not found" }
+      post:
+        description: |
+          Add a new <<resourcePathName|!singularize>> to REST-Scheduler.
+        queryParameters:
+          access_token:
+            description: "The access token provided by the authentication application"
+            example: AABBCCDD
+            required: true
+            type: string
+        body:
+          application/json:
+            schema: <<resourcePathName|!singularize>>
+            example: |
+              <<exampleItem>>
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  { "message": "The <<resourcePathName|!singularize>> has been properly entered" }
+          404:
+            body:
+              application/json:
+                example: |
+                  {"message": "<<resourcePathName|!singularize>> not found" }
+          500:
+            body:
+              application/json:
+                example: |
+                  {"message": "<<resourcePathName|!singularize>> could not be created" }
+      put:
+        description: |
+          Update the <<resourcePathName|!singularize>>
+          with <<resourcePathName|!singularize>>Id =
+          {<<resourcePathName|!singularize>>Id}.
+          Authentication is required.
+        body:
+          application/json:
+            schema: <<schemaItem>>
+            example: |
+              <<exampleItem>>
+        responses:
+          200:
+            body:
+              application/json:
+                example: |
+                  <<exampleItem>>
+                schema: <<schemaItem>>
+          404:
+            body:
+              application/json:
+                example: |
+                  {"message": "<<resourcePathName|!singularize>> not found" }
+traits:
+- versionable:
+      headers:
+        Accept-Version:
+          description: the version that is acceptable according to semver.org matching
+          type: string
+          example: ~1
+      responses:
+        200:
+          headers:
+            Version:
+              description: the (semver) version provided
+              type: string
+              example: 1.0.6
+
+
+/:
+  type:
+    collection-item:
+      exampleItem: !include examples/action.json
+      schemaItem: !include schemas/actionDefinition.json
+  description: this is the action that will fire at some time in the future
+  displayName: Action
+  post:
+    protocols:
+      - HTTP
+      - HTTPS
+    body:
+      application/json:
+        schema: !include schemas/actionReqObjDefinition.json
+    responses:
+      200:
+        body:
+          application/json:
+            example: !include examples/action.json
+            schema: !include schemas/actionDefinition.json
+/{jobid}:
+  type:
+    collection-item:
+      exampleItem: !include examples/action.json
+      schemaItem: !include schemas/actionDefinition.json
+  description: this is the action that will fire at some time in the future
+  displayName: Action
+  get:
+    body:
+      application/json:
+        example: !include examples/actionReqObj.json
+        schema: !include schemas/actionReqObjDefinition.json
+    responses:
+      200:
+        body:
+          application/json:
+            example: !include examples/action.json
+            schema: !include schemas/actionDefinition.json
+  put:
+    body:
+      application/json:
+        schema: !include schemas/actionReqObjDefinition.json
+  delete:
+    body:
+      application/json:
+        schema: !include schemas/actionReqObjDefinition.json
+
+/testcburl:
+  type:
+    collection-item:
+      exampleItem: !include examples/testcburl.json
+      schemaItem: !include schemas/testcburlDefinition.json
+  post:
+    body:
+      application/json:
+        schema: !include schemas/actionDefinition.json
+    responses:
+      200:
+        body:
+          applicaton/json:
+            example: !include examples/testcburl.json
+            schema: !include schemas/testcburlDefinition.json
+schemas:
+  - action-post-example: !include examples/action.json
