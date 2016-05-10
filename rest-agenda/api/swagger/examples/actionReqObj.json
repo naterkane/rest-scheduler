@@ -1,5 +1,0 @@
-{
-  "when":"in 3 second",
-  "url":"http://localhost:3000/testcburl",
-  "name":"3 job"
-}
