@@ -7,7 +7,7 @@ var url = require('url');
 var http = require('http');
 var _ = require('lodash');
 require('env-deploy')(__dirname);
-
+var ObjectId = require('mongodb').ObjectID;
 var app = express();
 app.use(bodyParser.json());
 app.use((req, res, next) => {
@@ -18,7 +18,8 @@ app.use((req, res, next) => {
  * let's get our dashboard served (on the same instance now because lazy)
  */
 var Agenda = require('agenda');
-var agenda = new Agenda()
+let processname = (process.getuid) ? process.getuid() : 'windozdevbox';
+var agenda = new Agenda({name: processname})
     .database(process.env.MONGOSTRING);
 // var rest = expressRest(app);
 /**
@@ -47,11 +48,10 @@ var generateResponseObj = function(jerb, reqtime) {
 /**
  * /action
  */
-app.post('/action', function(req, res) {
+app.post('/', function(req, res) {
   let reqtime = new Date().toISOString();
   let jerb = req.body;
   let opts = {};
-
   /**
    * process options
    */
@@ -98,8 +98,8 @@ app.post('/action', function(req, res) {
       });
     });
 
-    req.on('error', e => {
-      console.log(`problem with request: ${e.message}`);
+    req.on('error', err => {
+      console.log(`problem with request: ${err.message}`);
     });
 
     req.write(postData);
@@ -120,7 +120,64 @@ app.post('/action', function(req, res) {
   agenda.start();
 });
 
-app.post('/testcburl', function(req, res) {
+app.get('/:jobid', (req, res) => {
+  agenda.jobs({_id: ObjectId(req.params.jobid)}, (err, job) => {
+    if (err) {
+      throw new Error(err);
+    }
+    console.log(job, 'job');
+    var resp = job[0];
+    res.status(200)
+       .set('Content-Type', 'application/json; charset=utf-8')
+       .send(resp);
+  });
+});
+
+app.put('/:jobid', (req, res) => {
+  let jerb = req.body;
+  let resp = '';
+  console.log(req.params.jobid, '_id');
+  agenda.jobs({_id: ObjectId(req.params.jobid)}, (err, job) => {
+    if (err) {
+      console.error(err);
+      // throw new Error(err);
+    }
+    job = job[0];
+    console.log(job);
+    // console.dir(job.agenda.attrs, {depth: null, colors: true});
+    console.dir(jerb, {depth: null, colors: true});
+
+    job.attrs = Object.assign(job.attrs, jerb);
+    job.attrs.data = Object.assign(job.attrs.data, jerb);
+    job.save(err => {
+      if (err === null) {
+        console.log('Successfully saved Job ' + job.attrs.name);
+        resp = JSON.stringify(job);
+        res.status(200)
+           .set('Content-Type', 'application/json; charset=utf-8')
+           .send(resp);
+      } else {
+        res.status(500)
+           .set('Content-Type', 'application/json; charset=utf-8')
+           .send(err);
+      }
+    });
+  });
+});
+
+app.delete('/:jobid', (req, res) => {
+  agenda.cancel({_id: ObjectId(req.params.jobid)}, (err, numRemoved) => {
+    if (err) {
+      throw new Error(err);
+    }
+    console.log(numRemoved, 'numRemoved');
+    res.status(200)
+       .set('Content-Type', 'application/json; charset=utf-8')
+       .send({message: 'Successfully removed Job ' + req.params.jobid});
+  });
+});
+
+app.post('/testcburl', (req, res) => {
   var resp = JSON.stringify(req.body);
   console.log('TEST CB URL: ' + new Date().toISOString(), resp);
   res.status(202)
@@ -128,12 +185,12 @@ app.post('/testcburl', function(req, res) {
      .send(resp);
 });
 
-agenda.on('ready', function() {
+agenda.on('ready', () => {
   agenda.start();
 });
 
-agenda.on('start', function(job) {
-  console.log('Job %s starting', job.attrs.name);
+agenda.on('start', job => {
+  console.info('Job %s starting', job.attrs.name);
 });
 
 var server = app.listen(3000, function() {
@@ -141,5 +198,17 @@ var server = app.listen(3000, function() {
   host = (host === '::' ? 'localhost' : host);
   var port = server.address().port;
 
-  console.log('listening at http://%s:%s', host, port);
+  console.info('listening at http://%s:%s', host, port);
 });
+
+/**
+ *
+ */
+function graceful() {
+  agenda.stop(() => {
+    process.exit(0);
+  });
+}
+
+process.on('SIGTERM', graceful);
+process.on('SIGINT', graceful);
