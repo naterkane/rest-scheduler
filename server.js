@@ -7,7 +7,7 @@ var url = require('url');
 var http = require('http');
 var _ = require('lodash');
 require('env-deploy')(__dirname);
-var ObjectId = require('mongodb').ObjectID;
+var ObjectId = require('mongodb').ObjectId;
 var app = express();
 app.use(bodyParser.json());
 app.use((req, res, next) => {
@@ -25,17 +25,16 @@ var agenda = new Agenda({name: processname})
 /**
  * let's expose our endpoints
  */
-var generateResponseObj = function(jerb, reqtime) {
-  let time = (undefined === reqtime) ? new Date().toISOString() : reqtime;
+var generateResponseObj = function(jerb, reqtime = new Date().toISOString()) {
+  let time = reqtime;
   // let dataitems = jerb.keys();
   /**
    * omit core request keys from the arbitrary data we'll make available under req.data for the object we forwarard on
    * to the callback url
    */
-  console.log('jerb', JSON.stringify(jerb.attrs.data, null, 1));
+  // console.log('jerb', JSON.stringify(jerb.attrs.data, null, 1));
   let data = _.omit(jerb.attrs.data, 'when', 'url', 'name');
-
-  console.log('data', JSON.stringify(data, null, 1));
+  // console.log('data', JSON.stringify(data, null, 1));
   return JSON.stringify({
     meta: {
       time: time,
@@ -48,7 +47,7 @@ var generateResponseObj = function(jerb, reqtime) {
 /**
  * /action
  */
-app.post('/', function(req, res) {
+app.post('/', function(req, res, next) {
   let reqtime = new Date().toISOString();
   let jerb = req.body;
   let opts = {};
@@ -71,10 +70,8 @@ app.post('/', function(req, res) {
   console.log('URL ' + req.body.url);
   // var jorb = jerb;
   agenda.define(jerb.name, opts, (jorb, done) => {
-    // console.log("#################################################/nJERB URL" + jerb.url);
     var postData = JSON.stringify(jerb);
     var cburl = url.parse(jerb.url, true, true);
-    // console.info("cburl " + JSON.stringify(cburl));
     var options = {
       hostname: cburl.hostname,
       port: cburl.port,
@@ -110,7 +107,9 @@ app.post('/', function(req, res) {
 
   agenda.schedule(jerb.when, jerb.name, jerb, (err, jerb) => {
     if (err) {
-      throw new Error(err);
+      res.status(400)
+         .send({error: {code: 400, message: 'we were unable to process your reqest'}});
+      return next(err);
     }
     res.status(201)
        .set('Content-Type', 'application/json; charset=utf-8')
@@ -120,64 +119,94 @@ app.post('/', function(req, res) {
   agenda.start();
 });
 
-app.get('/:jobid', (req, res) => {
+app.get('/:jobid', (req, res, next) => {
   agenda.jobs({_id: ObjectId(req.params.jobid)}, (err, job) => {
     if (err) {
-      throw new Error(err);
+      res.status(400)
+         .send({error: {code: 400, message: 'we were unable to process your reqest'}});
+      return next(err);
     }
     console.log(job, 'job');
     var resp = job[0];
     res.status(200)
        .set('Content-Type', 'application/json; charset=utf-8')
-       .send(resp);
+       .send(generateResponseObj(resp));
   });
 });
 
-app.put('/:jobid', (req, res) => {
+app.put('/:jobid', (req, res, next) => {
   let jerb = req.body;
   let resp = '';
   console.log(req.params.jobid, '_id');
+
+  if (!ObjectId(req.params.jobid)) {
+    let err = 'we were unable to process your reqest';
+    res.status(400)
+       .send({error: {code: 400, message: err}});
+    console.warn('something something something darkside');
+    return next(err);
+  }
+
   agenda.jobs({_id: ObjectId(req.params.jobid)}, (err, job) => {
     if (err) {
-      console.error(err);
-      // throw new Error(err);
-    }
-    job = job[0];
-    console.log(job);
-    // console.dir(job.agenda.attrs, {depth: null, colors: true});
-    console.dir(jerb, {depth: null, colors: true});
+      console.warn(err);
+      res.status(400)
+         .send({error: {code: 400, message: 'we were unable to process your reqest'}})
+         .next();
+      return next(err);
+    } else if (job[0] === undefined) {
+      console.warn('you are a dumb fuck');
+      res.status(400)
+         .send({error: {code: 400, message: 'we were unable to process your reqest'}})
+         .next();
+      return next(err);
+    } else {
+      console.log(job.length, job);
+      job = job[0];
+      console.log('fuckfuckfuck ', job);
+      // console.dir(job.agenda.attrs, {depth: null, colors: true});
+      console.dir(jerb, {depth: null, colors: true});
 
-    job.attrs = Object.assign(job.attrs, jerb);
-    job.attrs.data = Object.assign(job.attrs.data, jerb);
-    job.save(err => {
-      if (err === null) {
-        console.log('Successfully saved Job ' + job.attrs.name);
-        resp = JSON.stringify(job);
-        res.status(200)
-           .set('Content-Type', 'application/json; charset=utf-8')
-           .send(resp);
-      } else {
-        res.status(500)
-           .set('Content-Type', 'application/json; charset=utf-8')
-           .send(err);
-      }
-    });
+      job.attrs = Object.assign(job.attrs, jerb);
+      job.attrs.data = Object.assign(job.attrs.data, jerb);
+      job.save(err => {
+        if (err) {
+          res.status(400)
+             .send({error: {code: 400, message: 'we were unable to process your reqest'}});
+          console.warn(err);
+        } else {
+          console.log('Successfully saved Job ' + job.attrs.name);
+          resp = JSON.stringify(job);
+          res.status(200)
+             .set('Content-Type', 'application/json; charset=utf-8')
+             .send(generateResponseObj(resp));
+        }
+      });
+    }
   });
 });
 
-app.delete('/:jobid', (req, res) => {
+app.delete('/:jobid', (req, res, next) => {
   agenda.cancel({_id: ObjectId(req.params.jobid)}, (err, numRemoved) => {
     if (err) {
-      throw new Error(err);
+      res.status(400)
+         .send({error: {code: 400, message: 'we were unable to process your reqest'}});
+      console.warn(err);
+      return next(err);
     }
-    console.log(numRemoved, 'numRemoved');
     res.status(200)
        .set('Content-Type', 'application/json; charset=utf-8')
-       .send({message: 'Successfully removed Job ' + req.params.jobid});
+       .send({message: 'Successfully removed %s Job(s) %s'}, numRemoved, req.params.jobid);
   });
 });
 
-app.post('/testcburl', (req, res) => {
+app.post('/testcburl', (req, res, next) => {
+  if (!req.body) {
+    var err = 'we were unable to process your request';
+    res.status(400)
+       .send({error: {code: 400, message: err}});
+    return next(err);
+  }
   var resp = JSON.stringify(req.body);
   console.log('TEST CB URL: ' + new Date().toISOString(), resp);
   res.status(202)
