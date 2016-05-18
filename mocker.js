@@ -1,25 +1,25 @@
 'use strict';
-var ramlMocker =  require('raml-mocker'),
-    express =     require('express'),
-    _ =           require('lodash'),
-    faker =       require('faker'),
-    options =     { path: __dirname + '/raml' },
-    app =         express(),
-    port =        process.env.API_SPEC_PORT || 3001,
+var ramlMocker =  require('raml-mocker');
+var express = require('express');
+var _ = require('lodash');
+var faker = require('faker');
+var options = {path: [__dirname, '/raml'].join()};
+var app = express();
+var port = process.env.API_SPEC_PORT || 3001;
 
-    callback =    function (requestsToMock){
-      _.each(requestsToMock, function(reqToMock){
-        app[reqToMock.method](reqToMock.uri, function(req,res){
-          var code = 200;
-          if (reqToMock.defaultCode) {
-            code = reqToMock.defaultCode;
-          }
-          console.log('mocking ' + reqToMock.uri);
-          res.setHeader("Access-Control-Allow-Origin", "*");
-          res.status(code).send(reqToMock.mock());
-        });
-      });
-    };
+var callback = function(requestsToMock) {
+  _.each(requestsToMock, function(reqToMock) {
+    app[reqToMock.method](reqToMock.uri, function(req, res) {
+      var code = 200;
+      if (reqToMock.defaultCode) {
+        code = reqToMock.defaultCode;
+      }
+      console.log('mocking ' + reqToMock.uri);
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.status(code).send(reqToMock.mock());
+    });
+  });
+};
 
 options.formats = {
   'date-time': function() {
@@ -40,7 +40,7 @@ options.formats = {
   name: function() {
     return faker.name.findName();
   }
-}
+};
 
 ramlMocker.generate(options, callback);
 
