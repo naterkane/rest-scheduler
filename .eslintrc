@@ -9,7 +9,7 @@
     "no-unused-vars": [2, {"vars": "all", "args": "none"}],
     "valid-jsdoc": [0],
     "linebreak-style": [0, "unix"],
-    "new-cap": [2, {"capIsNewExceptions": ["express.Router"]}],
+    "new-cap": [2, {"capIsNew": false}],
     "quote-props": [2, "as-needed"]
   },
   "env": {
