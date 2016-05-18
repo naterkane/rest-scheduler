@@ -7,7 +7,7 @@ engines:
   eslint:
     enabled: true
     config:
-      config: /usr/src/app/.eslintrc
+      config: .eslintrc
   fixme:
     enabled: true
 ratings:
