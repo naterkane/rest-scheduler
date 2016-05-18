@@ -1,56 +1,78 @@
 'use strict';
-var express = require('express');
-// var expressRest = require('express-rest');
-// var config = require('conf-env');
-var bodyParser = require('body-parser');
-var url = require('url');
-var http = require('http');
-var _ = require('lodash');
+/* eslint-env es6 */
+var http          = require('http'),
+    express       = require('express'),
+    bodyParser    = require('body-parser'),
+    url           = require('url'),
+    _             = require('lodash'),
+    ObjectId      = require('mongodb').ObjectId,
+    Agenda        = require('agenda');
 require('env-deploy')(__dirname);
-var ObjectId = require('mongodb').ObjectId;
-var app = express();
+let app           = express(),
+    processname   = (process.getuid) ? process.getuid() : 'windozdevbox',
+    agenda        = new Agenda({name: processname})
+                        .database(process.env.MONGOSTRING),
+    /**
+     * generateResponseObj
+     * wrap the request with metadata and return an object to send back
+     * @param  {Object} jerb    request Object describing Job
+     * @param  {String} reqtime time stamp of request
+     * @return {String}         JSON Object as a string
+     */
+    generateResponseObj = function(jerb, reqtime = new Date().toISOString()) {
+      /**
+       * omit core request keys from the arbitrary data we'll make available under req.data
+       * for the object we forwarard on to the callback url
+       */
+      let time = reqtime,
+          data = _.omit(jerb.attrs.data, 'when', 'url', 'name');
+      return JSON.stringify({
+        meta: {
+          time:    time,
+          request: jerb
+        },
+        data: data
+      });
+    };
+
 app.use(bodyParser.json());
 app.use((req, res, next) => {
   res.removeHeader('X-Powered-By');
   next();
 });
-/**
- * let's get our dashboard served (on the same instance now because lazy)
- */
-var Agenda = require('agenda');
-let processname = (process.getuid) ? process.getuid() : 'windozdevbox';
-var agenda = new Agenda({name: processname})
-    .database(process.env.MONGOSTRING);
-// var rest = expressRest(app);
-/**
- * let's expose our endpoints
- */
-var generateResponseObj = function(jerb, reqtime = new Date().toISOString()) {
-  let time = reqtime;
-  // let dataitems = jerb.keys();
-  /**
-   * omit core request keys from the arbitrary data we'll make available under req.data for the object we forwarard on
-   * to the callback url
-   */
-  // console.log('jerb', JSON.stringify(jerb.attrs.data, null, 1));
-  let data = _.omit(jerb.attrs.data, 'when', 'url', 'name');
-  // console.log('data', JSON.stringify(data, null, 1));
-  return JSON.stringify({
-    meta: {
-      time: time,
-      request: jerb
-    },
-    data: data
-  });
-};
 
 /**
- * /action
+ * development error handler, will print stacktrace
+ * @param  {Callback} app.get('env' [description]
+ * @return {[type]}               [description]
  */
+if (app.get('env') === 'development') {
+  app.use(function(err, req, res, next) {
+    res.status(err.status || 500);
+    res.render('error', {
+      message: err.message,
+      error:   err
+    });
+  });
+}
+
+/**
+ * production error handler, no stacktraces leaked to user
+ * @param  {Callback} function(err, req, res, next [description]
+ * @return {[type]}               [description]
+ */
+app.use(function(err, req, res, next) {
+  res.status(err.status || 500);
+  res.render('error', {
+    message: err.message,
+    error:   {}
+  });
+});
+
 app.post('/', function(req, res, next) {
-  let reqtime = new Date().toISOString();
-  let jerb = req.body;
-  let opts = {};
+  let reqtime = new Date().toISOString(),
+      jerb = req.body,
+      opts = {};
   /**
    * process options
    */
@@ -68,22 +90,29 @@ app.post('/', function(req, res, next) {
   }
 
   console.log('URL ' + req.body.url);
-  // var jorb = jerb;
+
+  /**
+   * create job
+   * @param  {String} jerb.name [description]
+   * @param  {Object} opts      [description]
+   * @param  {Callback} (jorb, done          [description]
+   * @return {[type]}           [description]
+   */
   agenda.define(jerb.name, opts, (jorb, done) => {
-    var postData = JSON.stringify(jerb);
-    var cburl = url.parse(jerb.url, true, true);
-    var options = {
+    let postData = JSON.stringify(jerb);
+    let cburl = url.parse(jerb.url, true, true);
+    let options = {
       hostname: cburl.hostname,
-      port: cburl.port,
-      path: cburl.path,
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json; charset=utf-8',
+      port:     cburl.port,
+      path:     cburl.path,
+      method:   'POST',
+      headers:  {
+        'Content-Type':   'application/json; charset=utf-8',
         'Content-Length': postData.length
       }
     };
 
-    var req = http.request(options, res => {
+    let req = http.request(options, res => {
       console.log(`STATUS: ${res.statusCode}`);
       console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
       res.setEncoding('utf8');
@@ -105,6 +134,15 @@ app.post('/', function(req, res, next) {
     done();
   });
 
+  /**
+   * Schedules a job to run name once at a given time. when can be a Date or a
+   * String such as tomorrow at 5pm.
+   * @param  {Date|String} jerb.when Date or String describing when the job should be run
+   * @param  {String} jerb.name Friendly name for Job
+   * @param  {Object} jerb      [description]
+   * @param  {Callback} (err,     jerb          [description]
+   * @return {[type]}           [description]
+   */
   agenda.schedule(jerb.when, jerb.name, jerb, (err, jerb) => {
     if (err) {
       res.status(400)
@@ -120,14 +158,15 @@ app.post('/', function(req, res, next) {
 });
 
 app.get('/:jobid', (req, res, next) => {
-  agenda.jobs({_id: ObjectId(req.params.jobid)}, (err, job) => {
+  let jobid = ObjectId(req.params.jobid) || req.params.jobid;
+  agenda.jobs({_id: jobid}, (err, job) => {
     if (err) {
       res.status(400)
          .send({error: {code: 400, message: 'we were unable to process your reqest'}});
       return next(err);
     }
     console.log(job, 'job');
-    var resp = job[0];
+    let resp = job[0];
     res.status(200)
        .set('Content-Type', 'application/json; charset=utf-8')
        .send(generateResponseObj(resp));
@@ -135,8 +174,8 @@ app.get('/:jobid', (req, res, next) => {
 });
 
 app.put('/:jobid', (req, res, next) => {
-  let jerb = req.body;
-  let resp = '';
+  let jerb = req.body,
+      resp = '';
   console.log(req.params.jobid, '_id');
 
   if (!ObjectId(req.params.jobid)) {
@@ -155,15 +194,17 @@ app.put('/:jobid', (req, res, next) => {
          .next();
       return next(err);
     } else if (job[0] === undefined) {
-      console.warn('you are a dumb fuck');
+      console.warn('there is no job');
       res.status(400)
          .send({error: {code: 400, message: 'we were unable to process your reqest'}})
          .next();
-      return next(err);
+      if (res) {
+        return next(err);
+      }
     } else {
       console.log(job.length, job);
       job = job[0];
-      console.log('fuckfuckfuck ', job);
+      console.log('there is a job', job);
       // console.dir(job.agenda.attrs, {depth: null, colors: true});
       console.dir(jerb, {depth: null, colors: true});
 
@@ -187,7 +228,7 @@ app.put('/:jobid', (req, res, next) => {
 });
 
 app.delete('/:jobid', (req, res, next) => {
-  agenda.cancel({_id: ObjectId(req.params.jobid)}, (err, numRemoved) => {
+  agenda.cancel({_id: /* eslint-disable */ ObjectId(req.params.jobid) /* exlint-enable */}, (err, numRemoved) => {
     if (err) {
       res.status(400)
          .send({error: {code: 400, message: 'we were unable to process your reqest'}});
@@ -202,12 +243,12 @@ app.delete('/:jobid', (req, res, next) => {
 
 app.post('/testcburl', (req, res, next) => {
   if (!req.body) {
-    var err = 'we were unable to process your request';
+    let err = 'we were unable to process your request';
     res.status(400)
        .send({error: {code: 400, message: err}});
     return next(err);
   }
-  var resp = JSON.stringify(req.body);
+  let resp = JSON.stringify(req.body);
   console.log('TEST CB URL: ' + new Date().toISOString(), resp);
   res.status(202)
      .set('Content-Type', 'application/json; charset=utf-8')
@@ -222,16 +263,17 @@ agenda.on('start', job => {
   console.info('Job %s starting', job.attrs.name);
 });
 
-var server = app.listen(3000, function() {
-  var host = server.address().address;
+let server = app.listen(3000, function() {
+  let host = server.address().address;
   host = (host === '::' ? 'localhost' : host);
-  var port = server.address().port;
+  let port = server.address().port;
 
   console.info('listening at http://%s:%s', host, port);
 });
 
 /**
- *
+ * graceful shutdown of app
+ * @return {[type]} [description]
  */
 function graceful() {
   agenda.stop(() => {
