@@ -6,7 +6,7 @@
   "scripts": {
     "start": "export NODE_ENV=development && pm2 start server.js",
     "prod": "export NODE_ENV=production && pm2 start server.js",
-    "pretest": "API_SPEC_PORT=3002 pm2 start -f mocker.js --name testserver",
+    "pretest": "API_SPEC_PORT=3002 pm2 start -f server.js --name testserver",
     "posttest": "pm2 delete testserver",
     "test": "node raml/rparse.js && mocha test",
     "docs": "node node_modules/raml2html/lib/raml2html.js raml/api.raml > docs.html",
