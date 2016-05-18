@@ -1,8 +1,10 @@
-# REST-Scheduler
+# REST-Agenda
+[![NPM](https://nodei.co/npm/rest-agenda.png)](https://nodei.co/npm/rest-agenda/)
 
+[![Code Climate](https://codeclimate.com/github/naterkane/rest-scheduler/badges/gpa.svg)](https://codeclimate.com/github/naterkane/rest-scheduler)
 ## Introduction
 
-`rest-scheduler` is middleware that allows the creation and management of special tasks. Think about it as an API to cron w/ persistence and clustering, not all tasks are automations.
+`rest-agenda` is middleware that allows the creation and management of special tasks. Think about it as an API to cron w/ persistence and clustering, not all tasks are automations.
 This is a dumb system.
 
 ## Getting started
@@ -23,7 +25,7 @@ then edit `.env` as required, the default mongo docker container does not requir
       "NODE_ENV": "development"                                                  // set whatever environment you want
     }
 
-### Start REST-Scheduler    
+### Start REST-Agenda    
 
 Now that we have our environment variables taken care of
 
@@ -32,7 +34,7 @@ Run Mongo then start the server
     $ node run docker
     $ node server.js                                        // if you want stdout
     or
-    $ pm2 start server.js --name=rest-scheduler --watch     // if you want the awesomeness of pm2
+    $ pm2 start server.js --name=rest-agenda --watch     // if you want the awesomeness of pm2
 
 ### Start Agendash
 
@@ -44,7 +46,7 @@ alternatively `.env` may be used to specify this value
 
 This service only exposes a single endpoint... `/action`
 
-## Sending a request to the scheduler
+## Sending a request to the agenda
 
 Each request must be sent via POST and contain a request object. Currently only 3 keys are required
 
@@ -77,7 +79,7 @@ Each request must be sent via POST and contain a request object. Currently only 
 
 ## Response objects
 
-As REST-Scheduler is really just designed to fire a dumb request to a callback URI after a set period of time, any request object sent to REST-Scheduler will get sent do the callback URI specified in the original request.
+As REST-Agenda is really just designed to fire a dumb request to a callback URI after a set period of time, any request object sent to REST-Agenda will get sent do the callback URI specified in the original request.
 This can include any arbitrary JSON the original caller desires.
 
 Below is an example of a current response object
