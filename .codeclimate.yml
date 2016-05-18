@@ -1,11 +1,18 @@
 engines:
+  duplication:
+    enabled: true
+    config:
+      languages:
+        - javascript
   eslint:
     enabled: true
     config:
       config: /usr/src/app/.eslintrc
-    extensions:
-        - .es6
-        - .js
+  fixme:
+    enabled: true
 ratings:
    paths:
    - "**.js"
+exclude_paths:
+  - config/
+  - test/
