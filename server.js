@@ -1,17 +1,17 @@
 'use strict';
 /* eslint-env es6 */
-var http          = require('http'),
-    express       = require('express'),
-    bodyParser    = require('body-parser'),
-    url           = require('url'),
-    _             = require('lodash'),
-    ObjectId      = require('mongodb').ObjectId,
-    Agenda        = require('agenda');
+let http = require('http');
+let express = require('express');
+let bodyParser = require('body-parser');
+let url = require('url');
+let _ = require('lodash');
+let ObjectId = require('mongodb').ObjectId;
+let Agenda = require('agenda');
 require('env-deploy')(__dirname);
-let app           = express(),
-    processname   = (process.getuid) ? process.getuid() : 'windozdevbox',
-    agenda        = new Agenda({name: processname})
-                        .database(process.env.MONGOSTRING),
+let app = express();
+let processname = (process.getuid) ? process.getuid() : 'windozdevbox';
+let agenda = new Agenda({name: processname})
+                        .database(process.env.MONGOSTRING);
     /**
      * generateResponseObj
      * wrap the request with metadata and return an object to send back
@@ -19,22 +19,49 @@ let app           = express(),
      * @param  {String} reqtime time stamp of request
      * @return {String}         JSON Object as a string
      */
-    generateResponseObj = function(jerb, reqtime = new Date().toISOString()) {
-      /**
-       * omit core request keys from the arbitrary data we'll make available under req.data
-       * for the object we forwarard on to the callback url
-       */
-      let time = reqtime,
-          data = _.omit(jerb.attrs.data, 'when', 'url', 'name');
-      return JSON.stringify({
-        meta: {
-          time:    time,
-          request: jerb
-        },
-        data: data
-      });
-    };
-
+let resp;
+let generateResponseObj = function(jerb, reqtime = new Date().toISOString()) {
+  /**
+   * omit core request keys from the arbitrary data we'll make available under req.data
+   * for the object we forwarard on to the callback url
+   */
+  console.log('jerb', jerb.attrs);
+  let time = reqtime;
+  let attrs = jerb.attrs;
+  console.log('attrs', attrs);
+  let data = _.omit(attrs.data, 'when', 'url', 'name');
+  return JSON.stringify({
+    meta: {
+      time: time,
+      request: attrs
+    },
+    data: data
+  });
+};
+let checkForHexRegExp = new RegExp('^[0-9a-fA-F]{24}$');
+app.param('poo', function(req, res, next, jobid) {
+  agenda.jobs(jobid, function(err, person) {
+    if (err) {
+      next(err);
+    } else if (person) {
+      req.person = person;
+      next();
+    } else {
+      next(new Error('failed to load person'));
+    }
+  });
+});
+let validateJobID = function(id, res, next) {
+  try {
+    if (ObjectId(id)) {
+      return true;
+    }
+  } catch (e) {
+    Error(e);
+    // console.warn(e);
+    return false;
+  }
+};
 app.use(bodyParser.json());
 app.use((req, res, next) => {
   res.removeHeader('X-Powered-By');
@@ -51,7 +78,7 @@ if (app.get('env') === 'development') {
     res.status(err.status || 500);
     res.render('error', {
       message: err.message,
-      error:   err
+      error: err
     });
   });
 }
@@ -65,14 +92,14 @@ app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error', {
     message: err.message,
-    error:   {}
+    error: {}
   });
 });
 
 app.post('/', function(req, res, next) {
-  let reqtime = new Date().toISOString(),
-      jerb = req.body,
-      opts = {};
+  let reqtime = new Date().toISOString();
+  let jerb = req.body;
+  let opts = {};
   /**
    * process options
    */
@@ -103,11 +130,11 @@ app.post('/', function(req, res, next) {
     let cburl = url.parse(jerb.url, true, true);
     let options = {
       hostname: cburl.hostname,
-      port:     cburl.port,
-      path:     cburl.path,
-      method:   'POST',
-      headers:  {
-        'Content-Type':   'application/json; charset=utf-8',
+      port: cburl.port,
+      path: cburl.path,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
         'Content-Length': postData.length
       }
     };
@@ -158,15 +185,23 @@ app.post('/', function(req, res, next) {
 });
 
 app.get('/:jobid', (req, res, next) => {
-  let jobid = ObjectId(req.params.jobid) || req.params.jobid;
+  if (!validateJobID(req.params.jobid)) {
+    let err = 'we were unable to process your reqest';
+    res.status(400)
+       .send({error: {code: 400, message: err}});
+    console.warn('something something something darkside');
+    return next(err);
+  }
+  let jobid = (req.params.jobid.length === 24) ? ObjectId(req.params.jobid) : req.params.jobid;
   agenda.jobs({_id: jobid}, (err, job) => {
-    if (err) {
+    if (err || job.length === 0) {
       res.status(400)
          .send({error: {code: 400, message: 'we were unable to process your reqest'}});
       return next(err);
     }
-    console.log(job, 'job');
-    let resp = job[0];
+
+    resp = job[0];
+    console.log('resp', resp.attrs);
     res.status(200)
        .set('Content-Type', 'application/json; charset=utf-8')
        .send(generateResponseObj(resp));
@@ -174,18 +209,17 @@ app.get('/:jobid', (req, res, next) => {
 });
 
 app.put('/:jobid', (req, res, next) => {
-  let jerb = req.body,
-      resp = '';
+  let jerb = req.body;
   console.log(req.params.jobid, '_id');
-
-  if (!ObjectId(req.params.jobid)) {
+  validateJobID(req.params.jobid, res, next);
+  /* if (!ObjectId(req.params.jobid)) {
     let err = 'we were unable to process your reqest';
     res.status(400)
        .send({error: {code: 400, message: err}});
     console.warn('something something something darkside');
     return next(err);
   }
-
+  */
   agenda.jobs({_id: ObjectId(req.params.jobid)}, (err, job) => {
     if (err) {
       console.warn(err);
@@ -202,11 +236,11 @@ app.put('/:jobid', (req, res, next) => {
         return next(err);
       }
     } else {
-      console.log(job.length, job);
+      // console.log(job.length, job);
       job = job[0];
-      console.log('there is a job', job);
+      // console.log('there is a job', job);
       // console.dir(job.agenda.attrs, {depth: null, colors: true});
-      console.dir(jerb, {depth: null, colors: true});
+      // console.dir(jerb, {depth: null, colors: true});
 
       job.attrs = Object.assign(job.attrs, jerb);
       job.attrs.data = Object.assign(job.attrs.data, jerb);
@@ -217,10 +251,10 @@ app.put('/:jobid', (req, res, next) => {
           console.warn(err);
         } else {
           console.log('Successfully saved Job ' + job.attrs.name);
-          resp = JSON.stringify(job);
+          // let resp = JSON.stringify(job);
           res.status(200)
              .set('Content-Type', 'application/json; charset=utf-8')
-             .send(generateResponseObj(resp));
+             .send(generateResponseObj(job));
         }
       });
     }
@@ -274,7 +308,7 @@ let server = app.listen(3000, function() {
 /**
  * graceful shutdown of app
  * @return {[type]} [description]
- */
+ *
 function graceful() {
   agenda.stop(() => {
     process.exit(0);
@@ -283,3 +317,4 @@ function graceful() {
 
 process.on('SIGTERM', graceful);
 process.on('SIGINT', graceful);
+//*/
