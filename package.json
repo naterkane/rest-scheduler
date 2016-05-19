@@ -1,6 +1,6 @@
 {
   "name": "rest-agenda",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "middleware for scheduling actions",
   "main": "index.js",
   "scripts": {
